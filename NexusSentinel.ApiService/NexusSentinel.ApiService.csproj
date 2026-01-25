@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NexusSentinel.ServiceDefaults\NexusSentinel.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\NexusSentinel.Shared\NexusSentinel.Shared.csproj" />
   </ItemGroup>
 
 </Project>

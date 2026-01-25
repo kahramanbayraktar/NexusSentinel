@@ -13,10 +13,12 @@
   <ItemGroup>
     <ProjectReference Include="..\NexusSentinel.ApiService\NexusSentinel.ApiService.csproj" />
     <ProjectReference Include="..\NexusSentinel.Web\NexusSentinel.Web.csproj" />
+    <ProjectReference Include="..\NexusSentinel.Simulator\NexusSentinel.Simulator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.1.0" />
   </ItemGroup>
 
 </Project>
