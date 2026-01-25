@@ -9,9 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NexusSentinel.Shared\NexusSentinel.Shared.csproj" />
+    <ProjectReference Include="..\NexusSentinel.ServiceDefaults\NexusSentinel.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

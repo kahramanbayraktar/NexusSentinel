@@ -11,4 +11,8 @@
     <ProjectReference Include="..\NexusSentinel.Shared\NexusSentinel.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.0" />
+  </ItemGroup>
+
 </Project>

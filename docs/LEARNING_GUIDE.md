@@ -75,3 +75,34 @@ The dashboard contains sensitive information, including request headers, environ
 - **`BackgroundService`**: A base class in .NET used for long-running tasks.
 - **`ExecuteAsync`**: The core method you override. It contains the `while (!stoppingToken.IsCancellationRequested)` loop which ensures the task stops gracefully when the application shuts down.
 - **`stoppingToken`**: Always pass this token to `Task.Delay` or Async methods to allow for immediate shutdown without hanging.
+
+---
+
+## ⚡ HttpClient & BackgroundService Issues
+
+### ❌ The Problem: Typed Clients vs. BackgroundService
+When using `AddHttpClient<Worker>(...)` (Typed Client) alongside `AddHostedService<Worker>()`, a common issue arises where the `BackgroundService` instance created by the host might not correctly receive the configured `HttpClient`. This often results in:
+- `InvalidOperationException`: "An invalid request URI was provided."
+- `BaseAddress` being null inside the Worker as the injection chain gets broken.
+
+### ✅ The Solution: IHttpClientFactory (Named Clients)
+Using `IHttpClientFactory` with a **Named Client** is the most robust approach for long-running services:
+
+1. **In `Program.cs`**:
+```csharp
+builder.Services.AddHttpClient("apiservice", client => {
+    client.BaseAddress = new Uri("http://apiservice/");
+});
+```
+
+2. **In `Worker.cs`**:
+```csharp
+public class Worker(IHttpClientFactory httpClientFactory) : BackgroundService {
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+        var client = httpClientFactory.CreateClient("apiservice");
+        // Use client...
+    }
+}
+```
+
+This pattern ensures that the `HttpClient` is always created with the correct configuration from the central factory, regardless of the `Worker`'s lifecycle.
