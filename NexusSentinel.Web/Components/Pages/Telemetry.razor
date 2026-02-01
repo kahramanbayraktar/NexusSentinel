@@ -1,0 +1,137 @@
+@page "/telemetry"
+@rendermode InteractiveServer
+@inject WeatherApiClient ApiClient
+
+<PageTitle>Telemetry Dashboard</PageTitle>
+
+<div class="telemetry-container">
+    <h1>📡 Telemetry Dashboard</h1>
+    <p class="subtitle">Real-time sensor data from NexusSentinel IoT devices</p>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading telemetry data...</p>
+        </div>
+    }
+    else if (telemetryData == null || telemetryData.Length == 0)
+    {
+        <div class="empty-state">
+            <p>📭 No telemetry data available yet.</p>
+            <p class="hint">Make sure the Simulator is running and sending data.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card temp-card">
+                <div class="stat-icon">🌡️</div>
+                <div class="stat-content">
+                    <div class="stat-value">@avgTemperature.ToString("F1")°C</div>
+                    <div class="stat-label">Average Temperature</div>
+                </div>
+            </div>
+
+            <div class="stat-card humidity-card">
+                <div class="stat-icon">💧</div>
+                <div class="stat-content">
+                    <div class="stat-value">@avgHumidity.ToString("F1")%</div>
+                    <div class="stat-label">Average Humidity</div>
+                </div>
+            </div>
+
+            <div class="stat-card count-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-value">@telemetryData.Length</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telemetry Table -->
+        <div class="telemetry-table-container">
+            <table class="telemetry-table">
+                <thead>
+                    <tr>
+                        <th>Device ID</th>
+                        <th>Temperature</th>
+                        <th>Humidity</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in telemetryData)
+                    {
+                        <tr>
+                            <td>
+                                <span class="device-badge">@item.DeviceId</span>
+                            </td>
+                            <td>
+                                <span class="temp-value @GetTempClass(item.Temperature)">
+                                    @item.Temperature.ToString("F2")°C
+                                </span>
+                            </td>
+                            <td>
+                                <span class="humidity-value">
+                                    @item.Humidity.ToString("F2")%
+                                </span>
+                            </td>
+                            <td class="timestamp">
+                                @item.Timestamp.ToLocalTime().ToString("HH:mm:ss")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private TelemetryData[]? telemetryData;
+    private bool isLoading = true;
+    private double avgTemperature = 0;
+    private double avgHumidity = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch telemetry data from API
+            telemetryData = await ApiClient.GetTelemetryAsync();
+
+            // Calculate statistics
+            if (telemetryData != null && telemetryData.Length > 0)
+            {
+                avgTemperature = telemetryData.Average(t => t.Temperature);
+                avgHumidity = telemetryData.Average(t => t.Humidity);
+            }
+        }
+        catch (Exception ex)
+        {
+            // In production, you'd log this properly
+            Console.WriteLine($"Error loading telemetry: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Returns CSS class based on temperature value for color coding
+    /// </summary>
+    private string GetTempClass(double temperature)
+    {
+        return temperature switch
+        {
+            ( < 20) => "temp-cold",
+            (>= 20 and < 25) => "temp-normal",
+            (>= 25 and < 28) => "temp-warm",
+            _ => "temp-hot"
+        };
+    }
+}

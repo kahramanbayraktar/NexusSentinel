@@ -17,11 +17,17 @@
 
 .top-row {
     height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(10, 14, 39, 0.8);
+    backdrop-filter: blur(10px);
 }
 
 .navbar-brand {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4299e1, #9f7aea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .bi {
@@ -60,22 +66,29 @@
     }
 
     .nav-item ::deep a {
-        color: #d7d7d7;
-        border-radius: 4px;
+        color: #a0aec0;
+        border-radius: 0.75rem;
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
+        transition: all 0.3s ease;
+        margin: 0.25rem 0;
+        padding: 0 1rem;
     }
 
 .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+    background: linear-gradient(135deg, rgba(66, 153, 225, 0.2), rgba(159, 122, 234, 0.2));
+    border: 1px solid rgba(66, 153, 225, 0.3);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
 }
 
 .nav-item ::deep a:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: translateX(5px);
 }
 
 .nav-scrollable {
