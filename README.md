@@ -1,10 +1,9 @@
-# NexusSentinel: Intelligent IoT Sentinel
+# NexusSentinel: Bodrum Weather Intelligence & Alerting System
 
 ![.NET 9](https://img.shields.io/badge/.NET-9.0-blue.svg)
 ![Aspire](https://img.shields.io/badge/Aspire-9.0-purple.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-NexusSentinel is a bleeding-edge, cloud-native autonomous monitoring system. It leverages the power of **.NET 9**, **.NET Aspire**, and **Semantic Kernel** to transform raw IoT telemetry into actionable AI-driven intelligence.
+NexusSentinel is an autonomous meteorology and alerting system specifically designed for **Bodrum**. It utilizes **.NET 9**, **.NET Aspire**, and **Semantic Kernel** to monitor regional weather stations, detect abnormal patterns (like sudden storms or fire risks), and notify subscribers.
 
 ## 🌟 Key Features
 - **Intelligent Monitoring:** Uses AI Agents (Semantic Kernel) to analyze sensor patterns and provide natural language insights.

@@ -1,6 +1,6 @@
-# NexusSentinel: Architecture & Concept
+# NexusSentinel: Bodrum Weather Intelligence Architecture
 
-NexusSentinel is a cloud-native distributed system designed to demonstrate modern enterprise software patterns using .NET 9, .NET Aspire, and AI integration through Semantic Kernel.
+NexusSentinel is a cloud-native meteorology system designed to monitor weather stations across Bodrum and notify subscribers about abnormal events using .NET 9, .NET Aspire, and Semantic Kernel.
 
 ## 🏗 High-Level Architecture
 
@@ -14,9 +14,9 @@ The "Brain" of the distributed system. It handles:
 
 ### 2. NexusSentinel.ApiService (The Intelligence Engine)
 The backend core responsible for data processing and AI logic:
-- **IoT Data Ingestion:** Minimal APIs designed for high-throughput sensor data.
-- **AI Integration (Semantic Kernel):** Acts as the AI Agent's host, processing raw telemetry into human-readable insights.
-- **Domain Logic:** Validates sensor thresholds and triggers anomaly detection workflows.
+- **Weather Telemetry Ingestion:** High-performance endpoints for stations like Yalıkavak, Bitez, etc.
+- **AI Integration (Semantic Kernel):** Analyzes weather patterns (e.g., Lodos wind correlation) and generates storm or fire risk reports.
+- **Subscriber Management:** Manages alerts for users who need real-time weather warnings.
 
 ### 3. NexusSentinel.Web (The Visualization Layer)
 A modern **Blazor Web App** providing:
