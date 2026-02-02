@@ -1,12 +1,23 @@
 @page "/telemetry"
 @rendermode InteractiveServer
 @inject WeatherApiClient ApiClient
+@implements IDisposable
 
 <PageTitle>Telemetry Dashboard</PageTitle>
 
 <div class="telemetry-container">
     <h1>📡 Telemetry Dashboard</h1>
-    <p class="subtitle">Real-time sensor data from NexusSentinel IoT devices</p>
+    <div class="subtitle-container">
+        <p class="subtitle">Real-time sensor data from NexusSentinel IoT devices</p>
+        @if (isRefreshing)
+        {
+            <span class="refresh-indicator">🔄 Refreshing...</span>
+        }
+        else
+        {
+            <span class="last-update">Last update: @lastUpdate.ToString("HH:mm:ss")</span>
+        }
+    </div>
 
     @if (isLoading)
     {
@@ -93,31 +104,84 @@
 @code {
     private TelemetryData[]? telemetryData;
     private bool isLoading = true;
+    private bool isRefreshing = false;
     private double avgTemperature = 0;
     private double avgHumidity = 0;
+    private Timer? _refreshTimer;
+    private DateTime lastUpdate = DateTime.Now;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadTelemetryData();
+
+        // Start Timer. Call RefreshData every 5 seconds
+        // Timer(callback, state, dueTime, period)
+        // dueTime: 5000ms (5 seconds) after first run
+        // period: 5000ms (5 seconds) intervals
+        _refreshTimer = new Timer(async _ => await RefreshData(), null, 5000, 5000);
+    }
+
+    // Pulls data on page load
+    private async Task LoadTelemetryData()
+    {
         try
         {
-            // Fetch telemetry data from API
             telemetryData = await ApiClient.GetTelemetryAsync();
-
-            // Calculate statistics
-            if (telemetryData != null && telemetryData.Length > 0)
-            {
-                avgTemperature = telemetryData.Average(t => t.Temperature);
-                avgHumidity = telemetryData.Average(t => t.Humidity);
-            }
+            CalculateStats();
+            lastUpdate = DateTime.Now;
         }
         catch (Exception ex)
         {
-            // In production, you'd log this properly
             Console.WriteLine($"Error loading telemetry: {ex.Message}");
         }
         finally
         {
             isLoading = false;
+        }
+    }
+
+    // Called by Timer periodically
+    private async Task RefreshData()
+    {
+        // Timer Callback runs in background thread
+        // Must use InvokeAsync to update UI
+        await InvokeAsync(async () =>
+        {
+            isRefreshing = true;
+            StateHasChanged(); // Shows "refreshing" indicator
+
+            // SPEED TEST: Since API is too fast, we add a 500ms delay to see the refresh indicator
+            await Task.Delay(500); 
+
+            try
+            {
+                var newData = await ApiClient.GetTelemetryAsync();
+
+                if (newData != null && newData.Length > 0)
+                {
+                    telemetryData = newData;
+                    CalculateStats();
+                    lastUpdate = DateTime.Now;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error refreshing telemetry: {ex.Message}");
+            }
+            finally
+            {
+                isRefreshing = false;
+                StateHasChanged();
+            }
+        });
+    }
+
+    private void CalculateStats()
+    {
+        if (telemetryData != null && telemetryData.Length > 0)
+        {
+            avgTemperature = telemetryData.Average(t => t.Temperature);
+            avgHumidity = telemetryData.Average(t => t.Humidity);
         }
     }
 
@@ -128,10 +192,19 @@
     {
         return temperature switch
         {
-            ( < 20) => "temp-cold",
+            (< 20) => "temp-cold",
             (>= 20 and < 25) => "temp-normal",
             (>= 25 and < 28) => "temp-warm",
             _ => "temp-hot"
         };
+    }
+
+    /// <summary>
+    /// Called when component is disposed (page is closed)
+    /// Stops the timer to prevent memory leak
+    /// </summary>
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
     }
 }

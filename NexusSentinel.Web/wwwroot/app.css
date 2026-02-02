@@ -235,6 +235,31 @@ h1:focus {
     padding: 1rem;
 }
 
+/* Subtitle Container */
+.subtitle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.refresh-indicator {
+    color: var(--accent-blue);
+    font-size: 0.9rem;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.last-update {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-family: 'Courier New', monospace;
+}
+
 /* Device Badge */
 .device-badge {
     display: inline-block;
