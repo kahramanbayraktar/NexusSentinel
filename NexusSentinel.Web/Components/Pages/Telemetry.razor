@@ -1,6 +1,7 @@
 @page "/telemetry"
 @rendermode InteractiveServer
 @inject WeatherApiClient ApiClient
+@using NexusSentinel.Shared
 @implements IDisposable
 
 <PageTitle>Telemetry Dashboard</PageTitle>
@@ -21,7 +22,7 @@
         background: linear-gradient(90deg, #4299e1, #9f7aea);
         transition: width 0.2s linear;
     }
-    
+
     .debug-text {
         font-size: 0.7rem;
         color: #666;
@@ -32,12 +33,12 @@
 
 <div class="telemetry-container">
     <h1>📡 Telemetry Dashboard</h1>
-    
+
     <!-- Progress Bar -->
     <div class="refresh-progress-bar">
         <div class="progress-fill" style="@($"width: {progressValue}%;")"></div>
     </div>
-    
+
     <!-- Debug Info (Görüyorsanız kod çalışıyor demektir) -->
     @* <div class="debug-text">Progress: @progressValue% | Refreshing: @isRefreshing</div> *@
 
@@ -142,7 +143,7 @@
     private double avgTemperature = 0;
     private double avgHumidity = 0;
     private DateTime lastUpdate = DateTime.Now;
-    
+
     // Timer ve Progress
     private Timer? _mainTimer;
     private int progressValue = 0;
@@ -154,7 +155,7 @@
 
         // 2. Start Timer (Runs every 100ms)
         // Timer'ı OnInitialized içinde başlatmak en güvenilir yöntemdir.
-        _mainTimer = new Timer(async _ => 
+        _mainTimer = new Timer(async _ =>
         {
             // Progress Bar Logic
             progressValue += 2;
@@ -162,7 +163,7 @@
             {
                 progressValue = 0;
                 // Veriyi yenile (Fire and forget)
-                await RefreshData(); 
+                await RefreshData();
             }
 
             // UI Update
@@ -201,8 +202,8 @@
             try
             {
                 // API çok hızlı olduğu için UI efekti görelim diye minik gecikme
-                await Task.Delay(300); 
-                
+                await Task.Delay(300);
+
                 var newData = await ApiClient.GetTelemetryAsync();
                 if (newData != null && newData.Length > 0)
                 {
@@ -236,9 +237,9 @@
     {
         return temperature switch
         {
-            < 20 => "temp-cold",
-            >= 20 and < 25 => "temp-normal",
-            >= 25 and < 28 => "temp-warm",
+            (< 20) => "temp-cold",
+            (>= 20 and < 25) => "temp-normal",
+            (>= 25 and < 28) => "temp-warm",
             _ => "temp-hot"
         };
     }

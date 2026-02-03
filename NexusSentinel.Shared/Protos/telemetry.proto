@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+// namespace for generated C# code
+option csharp_namespace = "NexusSentinel.Shared.Protos";
+
+// package for generated C++ code
+package telemetry;
+
+import "google/protobuf/timestamp.proto";
+
+service TelemetryService {
+    rpc SendTelemetry (TelemetryRequest) returns (TelemetryResponse);
+}
+
+message TelemetryRequest {
+    string device_id = 1;
+    double temperature = 2;
+    double humidity = 3;
+    google.protobuf.Timestamp timestamp = 4;
+}
+
+message TelemetryResponse {
+    bool success = 1;
+    string message = 2;
+}

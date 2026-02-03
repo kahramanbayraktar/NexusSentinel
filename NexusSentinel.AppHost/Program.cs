@@ -18,7 +18,7 @@ var apiService = builder
     .WithReference(sqldb);
 
 // ApiService
-builder.AddProject<Projects.NexusSentinel_Simulator>("simulator").WithReference(apiService);
+builder.AddProject<Projects.NexusSentinel_IoTSimulator>("iot-simulator").WithReference(apiService);
 
 // Web
 builder

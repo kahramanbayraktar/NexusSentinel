@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using NexusSentinel.ApiService.Data;
+using NexusSentinel.ApiService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add gRPC services
+builder.Services.AddGrpc();
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -12,6 +16,12 @@ builder.AddNpgsqlDbContext<AppDbContext>("sqldb");
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+// Add gRPC service
+app.MapGrpcService<TelemetryGrpcService>();
+
+// Add a simple HTTP endpoint for testing
+app.MapGet("/grpc", () => "Communication with gRPC endpoints must be made through gRPC.");
 
 if (app.Environment.IsDevelopment())
 {

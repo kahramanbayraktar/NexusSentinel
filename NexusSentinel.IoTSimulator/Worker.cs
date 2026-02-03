@@ -2,11 +2,12 @@ using System;
 using System.Net.Http.Json;
 using System.Reflection.Emit;
 using NexusSentinel.Shared;
+using NexusSentinel.Shared.Protos;
 
-namespace NexusSentinel.Simulator;
+namespace NexusSentinel.IoTSimulator;
 
 // We inject IHttpClientFactory instead of HttpClient
-public class Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory)
+public class Worker(ILogger<Worker> logger, TelemetryService.TelemetryServiceClient grpcClient)
     : BackgroundService
 {
     private readonly Random _random = new();
@@ -17,7 +18,7 @@ public class Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory
         logger.LogInformation("IoT Simulator is starting for device: {DeviceId}", _deviceId);
 
         // We create the client by name through the factory
-        var httpClient = httpClientFactory.CreateClient("apiservice");
+        // var httpClient = httpClientFactory.CreateClient("apiservice");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -40,13 +41,25 @@ public class Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory
             try
             {
                 // The httpClient now knows the BaseAddress is "http://apiservice/"
-                var response = await httpClient.PostAsJsonAsync(
-                    "telemetry",
-                    telemetry,
-                    stoppingToken
-                );
+                // var response = await httpClient.PostAsJsonAsync(
+                //     "telemetry",
+                //     telemetry,
+                //     stoppingToken
+                // );
 
-                if (response.IsSuccessStatusCode)
+                var request = new TelemetryRequest
+                {
+                    DeviceId = _deviceId,
+                    Temperature = telemetry.Temperature,
+                    Humidity = telemetry.Humidity,
+                    Timestamp = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                        telemetry.Timestamp
+                    ),
+                };
+                var response = await grpcClient.SendTelemetryAsync(request);
+
+                // if (response.IsSuccessStatusCode)
+                if (response.Success)
                 {
                     logger.LogInformation(
                         "Telemetry sent: {Device} - Temp: {Temp}°C, {Humidity}% Hum",
@@ -57,10 +70,11 @@ public class Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory
                 }
                 else
                 {
-                    logger.LogWarning(
-                        "Failed to send telemetry. Status: {Status}",
-                        response.StatusCode
-                    );
+                    // logger.LogWarning(
+                    //     "Failed to send telemetry. Status: {Status}",
+                    //     response.StatusCode
+                    // );
+                    logger.LogWarning("Failed to send telemetry");
                 }
             }
             catch (System.Exception ex)

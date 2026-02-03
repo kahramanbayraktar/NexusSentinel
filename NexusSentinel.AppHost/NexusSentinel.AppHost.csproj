@@ -13,7 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NexusSentinel.ApiService\NexusSentinel.ApiService.csproj" />
     <ProjectReference Include="..\NexusSentinel.Web\NexusSentinel.Web.csproj" />
-    <ProjectReference Include="..\NexusSentinel.Simulator\NexusSentinel.Simulator.csproj" />
+    <ProjectReference Include="..\NexusSentinel.IoTSimulator\NexusSentinel.IoTSimulator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
