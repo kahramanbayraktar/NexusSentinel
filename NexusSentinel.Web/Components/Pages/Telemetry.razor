@@ -5,8 +5,42 @@
 
 <PageTitle>Telemetry Dashboard</PageTitle>
 
+<!-- Styles embedded directly to avoid caching issues -->
+<style>
+    .refresh-progress-bar {
+        width: 100%;
+        height: 6px;
+        background-color: rgba(255, 255, 255, 0.1);
+        margin-bottom: 1.5rem;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4299e1, #9f7aea);
+        transition: width 0.2s linear;
+    }
+    
+    .debug-text {
+        font-size: 0.7rem;
+        color: #666;
+        font-family: monospace;
+        margin-top: 2px;
+    }
+</style>
+
 <div class="telemetry-container">
     <h1>📡 Telemetry Dashboard</h1>
+    
+    <!-- Progress Bar -->
+    <div class="refresh-progress-bar">
+        <div class="progress-fill" style="@($"width: {progressValue}%;")"></div>
+    </div>
+    
+    <!-- Debug Info (Görüyorsanız kod çalışıyor demektir) -->
+    @* <div class="debug-text">Progress: @progressValue% | Refreshing: @isRefreshing</div> *@
+
     <div class="subtitle-container">
         <p class="subtitle">Real-time sensor data from NexusSentinel IoT devices</p>
         @if (isRefreshing)
@@ -63,7 +97,7 @@
         </div>
 
         <!-- Telemetry Table -->
-        <div class="telemetry-table-container">
+        <div class="telemetry-table-container" @key="lastUpdate">
             <table class="telemetry-table">
                 <thead>
                     <tr>
@@ -73,7 +107,7 @@
                         <th>Timestamp</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="row-refresh-animation">
                     @foreach (var item in telemetryData)
                     {
                         <tr>
@@ -107,21 +141,35 @@
     private bool isRefreshing = false;
     private double avgTemperature = 0;
     private double avgHumidity = 0;
-    private Timer? _refreshTimer;
     private DateTime lastUpdate = DateTime.Now;
+    
+    // Timer ve Progress
+    private Timer? _mainTimer;
+    private int progressValue = 0;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadTelemetryData();
+        // 1. Initial Data Load (Background)
+        _ = LoadTelemetryData();
 
-        // Start Timer. Call RefreshData every 5 seconds
-        // Timer(callback, state, dueTime, period)
-        // dueTime: 5000ms (5 seconds) after first run
-        // period: 5000ms (5 seconds) intervals
-        _refreshTimer = new Timer(async _ => await RefreshData(), null, 5000, 5000);
+        // 2. Start Timer (Runs every 100ms)
+        // Timer'ı OnInitialized içinde başlatmak en güvenilir yöntemdir.
+        _mainTimer = new Timer(async _ => 
+        {
+            // Progress Bar Logic
+            progressValue += 2;
+            if (progressValue >= 100)
+            {
+                progressValue = 0;
+                // Veriyi yenile (Fire and forget)
+                await RefreshData(); 
+            }
+
+            // UI Update
+            await InvokeAsync(StateHasChanged);
+        }, null, 0, 100);
     }
 
-    // Pulls data on page load
     private async Task LoadTelemetryData()
     {
         try
@@ -132,31 +180,30 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading telemetry: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message}");
         }
         finally
         {
             isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    // Called by Timer periodically
     private async Task RefreshData()
     {
-        // Timer Callback runs in background thread
-        // Must use InvokeAsync to update UI
+        if (isRefreshing) return;
+
         await InvokeAsync(async () =>
         {
             isRefreshing = true;
-            StateHasChanged(); // Shows "refreshing" indicator
-
-            // SPEED TEST: Since API is too fast, we add a 500ms delay to see the refresh indicator
-            await Task.Delay(500); 
+            StateHasChanged();
 
             try
             {
+                // API çok hızlı olduğu için UI efekti görelim diye minik gecikme
+                await Task.Delay(300); 
+                
                 var newData = await ApiClient.GetTelemetryAsync();
-
                 if (newData != null && newData.Length > 0)
                 {
                     telemetryData = newData;
@@ -166,7 +213,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error refreshing telemetry: {ex.Message}");
+                Console.WriteLine($"Refresh Error: {ex.Message}");
             }
             finally
             {
@@ -185,26 +232,19 @@
         }
     }
 
-    /// <summary>
-    /// Returns CSS class based on temperature value for color coding
-    /// </summary>
     private string GetTempClass(double temperature)
     {
         return temperature switch
         {
-            (< 20) => "temp-cold",
-            (>= 20 and < 25) => "temp-normal",
-            (>= 25 and < 28) => "temp-warm",
+            < 20 => "temp-cold",
+            >= 20 and < 25 => "temp-normal",
+            >= 25 and < 28 => "temp-warm",
             _ => "temp-hot"
         };
     }
 
-    /// <summary>
-    /// Called when component is disposed (page is closed)
-    /// Stops the timer to prevent memory leak
-    /// </summary>
     public void Dispose()
     {
-        _refreshTimer?.Dispose();
+        _mainTimer?.Dispose();
     }
 }
