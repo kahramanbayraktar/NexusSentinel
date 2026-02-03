@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -10,5 +9,4 @@
     <ProjectReference Include="..\NexusSentinel.ServiceDefaults\NexusSentinel.ServiceDefaults.csproj" />
     <ProjectReference Include="..\NexusSentinel.Shared\NexusSentinel.Shared.csproj" />
   </ItemGroup>
-
 </Project>
