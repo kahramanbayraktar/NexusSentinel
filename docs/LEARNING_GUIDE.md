@@ -106,3 +106,51 @@ public class Worker(IHttpClientFactory httpClientFactory) : BackgroundService {
 ```
 
 This pattern ensures that the `HttpClient` is always created with the correct configuration from the central factory, regardless of the `Worker`'s lifecycle.
+---
+
+## 🌐 Real-Time Communication & Microservices Patterns
+
+Modern distributed systems need to move data efficiently between services and to the end-user. We've explored three main patterns:
+
+### 1. Polling: The "Passive" Approach
+In polling, the client (e.g., Web App) periodically asks the server (e.g., API) "Is there any new data?".
+
+*   **Mechanism:** Client-driven via a timer (e.g., every 5 seconds).
+*   **The "Double Burden" (Scale Issue):**
+    *   **Redundant Requests:** If data hasn't changed, the API still has to process the request, check the database, and return an empty or duplicate response. At scale (10,000+ users), this wastes CPU/RAM.
+    *   **Network Overhead (Headers):** Every HTTP request carries heavy headers (User-Agent, Cookies, JWT Tokens). Often, the "envelope" (Headers) is 2KB while the "letter" (Data) is only 40 bytes.
+    *   **Latency:** Data is only as fresh as the last poll. If an event happens right after a poll, it sits invisible for almost the entire interval.
+
+### 2. SignalR (Push): The "Reactive" Approach
+SignalR allows the server to proactively "push" data to the client as soon as it happens.
+
+*   **Mechanism:** Uses **WebSockets** for a persistent, bi-directional "highway".
+*   **Benefits:**
+    *   **Efficiency:** Header overhead is only paid once (during the initial handshake). After that, only raw data frames are sent.
+    *   **Immediacy:** Zero-latency delivery. As soon as the API receives a sensor reading, it "flicks" it to all connected dashboards.
+    *   **Statelessness vs Persistence:** Unlike standard HTTP (stateless), SignalR maintains a "stateful" connection, making it feel alive.
+
+### 3. gRPC: High-Performance Service-to-Service
+Where SignalR is king for Server-to-Client (Browser), gRPC is the gold standard for Service-to-Service communication.
+
+*   **Format:** Uses **Protocol Buffers (Protobuf)**, a binary format, instead of text-based JSON.
+*   **Performance:** Binary data is much smaller and faster to serialize/deserialize than text.
+*   **Strong Typing:** Contracts are defined in `.proto` files, ensuring both services speak the exact same language (Contract-First approach).
+*   **HTTP/2:** Takes advantage of advanced features like multiplexing several requests over a single connection.
+
+### 📊 Tactical Comparison
+
+| Pattern | Best For | Transport | Data Format | Overhead |
+| :--- | :--- | :--- | :--- | :--- |
+| **Polling** | Simple apps, low traffic | HTTP | JSON/XML | High (Headers per req) |
+| **SignalR** | **Client UI updates**, Chat, Dashboards | WebSocket | JSON/Binary | Low (After handshake) |
+| **gRPC** | **Internal Microservices**, High throughput | HTTP/2 | Protobuf (Binary) | Minimal |
+
+---
+
+## 🔐 The "Header" Burden & Session Management
+
+We've discussed how headers impact high-scale systems:
+1.  **JWT (JSON Web Token):** Often stored in the `Authorization` header. In polling, this large encrypted string is sent every second.
+2.  **Cookies (Session/Analytics):** Tarayıcıdaki `_ga` (Google Analytics) veya `sessionid` çerezleri her istekle beraber otomatik gönderilir. Bu "gereksiz yük" (overhead), polling sıklığı arttıkça ağ trafiğini şişirir.
+3.  **Stateless API:** High-scale sistemlerde API'ler genellikle "Session" tutmaz. Bunun yerine her isteği kendi içinde doğrular (JWT). Bu, sunucu hafızasını rahatlatsa da istemcinin her seferinde kimliğini (Token) kanıtlaması (Header yükü) maliyetini doğurur.
